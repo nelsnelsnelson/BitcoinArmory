@@ -117,7 +117,6 @@ struct BlockDataManagerConfig
    static map<string, string> getKeyValsFromLines(
       const vector<string>&, char delim);
    static pair<string, string> getKeyValFromLine(const string&, char delim);
-   static string stripQuotes(const string& input);
    static vector<string> keyValToArgv(const map<string, string>&);
    
    static bool testConnection(const string& ip, const string& port);

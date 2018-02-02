@@ -833,7 +833,7 @@ BitcoinP2P::BitcoinP2P(const string& addrV4, const string& port,
 {
    nodeConnected_.store(false, memory_order_relaxed);
    run_.store(true, memory_order_relaxed);
-
+   LOGINFO << "Initialize bitcoin p2p node at " << addrV4 << ":" << port;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -845,6 +845,7 @@ BitcoinP2P::~BitcoinP2P()
 ////////////////////////////////////////////////////////////////////////////////
 void BitcoinP2P::connectToNode(bool async)
 {
+   LOGINFO << "Opening " << (async ? "a" : "") << "synchronous connection to node";
    unique_lock<mutex> lock(connectMutex_, defer_lock);
 
    if (!lock.try_lock()) //return if another thread is already here
@@ -881,6 +882,7 @@ void BitcoinP2P::connectLoop(void)
    promise<bool> shutdownPromise;
    shutdownFuture_ = shutdownPromise.get_future();
 
+   LOGINFO << "Entering connection loop";
    while (run_.load(memory_order_relaxed))
    {
       //clean up stacks
@@ -940,6 +942,7 @@ void BitcoinP2P::connectLoop(void)
          version.startHeight_ = -1;
 
          sendMessage(move(version));
+         LOGINFO << "Sent version message to Bitcoin node";
 
          //wait on verack
          verackFuture.get();
