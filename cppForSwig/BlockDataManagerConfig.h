@@ -55,6 +55,7 @@ struct BlockDataManagerConfig
    BinaryData genesisBlockHash_;
    BinaryData genesisTxHash_;
    BinaryData magicBytes_;
+   BinaryData p2pMagicBytes_;
 
    NodeType nodeType_ = Node_BTC;
    string btcPort_;
