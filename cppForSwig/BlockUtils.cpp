@@ -883,13 +883,13 @@ BlockDataManager::BlockDataManager(
       if (bdmConfig.nodeType_ == Node_BTC)
       {
          networkNode_ = make_shared<BitcoinP2P>("127.0.0.1", config_.btcPort_,
-            *(uint32_t*)config_.magicBytes_.getPtr());
+            *(uint32_t*)config_.p2pMagicBytes_.getPtr());
          nodeRPC_ = make_shared<NodeRPC>(config_);
       }
       else if (bdmConfig.nodeType_ == Node_UnitTest)
       {
          networkNode_ = make_shared<NodeUnitTest>("127.0.0.1", config_.btcPort_,
-            *(uint32_t*)config_.magicBytes_.getPtr());
+            *(uint32_t*)config_.p2pMagicBytes_.getPtr());
          nodeRPC_ = make_shared<NodeRPC_UnitTest>(config_);
       }
       else

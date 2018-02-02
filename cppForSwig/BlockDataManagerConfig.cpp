@@ -93,11 +93,27 @@ string BlockDataManagerConfig::portToString(unsigned port)
 ////////////////////////////////////////////////////////////////////////////////
 void BlockDataManagerConfig::selectNetwork(const string &netname)
 {
+   cout << "Configuring for " << netname << " network" << endl;
    if (netname == "Main")
    {
       genesisBlockHash_ = READHEX(MAINNET_GENESIS_HASH_HEX);
       genesisTxHash_ = READHEX(MAINNET_GENESIS_TX_HASH_HEX);
+      magicBytes_ = p2pMagicBytes_ = READHEX(MAINNET_MAGIC_BYTES);
+      p2pMagicBytes_ = READHEX(MAINNET_MAGIC_BYTES);
+      btcPort_ = portToString(NODE_PORT_MAINNET);
+      rpcPort_ = portToString(RPC_PORT_MAINNET);
+      pubkeyHashPrefix_ = SCRIPT_PREFIX_HASH160;
+      scriptHashPrefix_ = SCRIPT_PREFIX_P2SH;
+      
+      if (!customFcgiPort_)
+         fcgiPort_ = portToString(FCGI_PORT_MAINNET);
+   }
+   else if (netname == "BCash")
+   {
+      genesisBlockHash_ = READHEX(MAINNET_GENESIS_HASH_HEX);
+      genesisTxHash_ = READHEX(MAINNET_GENESIS_TX_HASH_HEX);
       magicBytes_ = READHEX(MAINNET_MAGIC_BYTES);
+      p2pMagicBytes_ = READHEX(BCASH_MAGIC_BYTES);
       btcPort_ = portToString(NODE_PORT_MAINNET);
       rpcPort_ = portToString(RPC_PORT_MAINNET);
       pubkeyHashPrefix_ = SCRIPT_PREFIX_HASH160;
@@ -110,7 +126,7 @@ void BlockDataManagerConfig::selectNetwork(const string &netname)
    {
       genesisBlockHash_ = READHEX(TESTNET_GENESIS_HASH_HEX);
       genesisTxHash_ = READHEX(TESTNET_GENESIS_TX_HASH_HEX);
-      magicBytes_ = READHEX(TESTNET_MAGIC_BYTES);
+      magicBytes_ = p2pMagicBytes_ = READHEX(TESTNET_MAGIC_BYTES);
       btcPort_ = portToString(NODE_PORT_TESTNET);
       rpcPort_ = portToString(RPC_PORT_TESTNET);
       pubkeyHashPrefix_ = SCRIPT_PREFIX_HASH160_TESTNET;
@@ -125,7 +141,7 @@ void BlockDataManagerConfig::selectNetwork(const string &netname)
    {
       genesisBlockHash_ = READHEX(REGTEST_GENESIS_HASH_HEX);
       genesisTxHash_ = READHEX(REGTEST_GENESIS_TX_HASH_HEX);
-      magicBytes_ = READHEX(REGTEST_MAGIC_BYTES);
+      magicBytes_ = p2pMagicBytes_ = READHEX(REGTEST_MAGIC_BYTES);
       btcPort_ = portToString(NODE_PORT_REGTEST);
       rpcPort_ = portToString(RPC_PORT_TESTNET);
       pubkeyHashPrefix_ = SCRIPT_PREFIX_HASH160_TESTNET;
@@ -406,24 +422,28 @@ void BlockDataManagerConfig::processArgs(const map<string, string>& args,
    }
 
    //network type
-   iter = args.find("testnet");
-   if (iter != args.end())
+   map<string, string> networkMap = 
    {
-      selectNetwork("Test");
-   }
-   else
+      {"testnet", "Test"}, 
+      {"regtest", "Regtest"},
+      {"bcash", "BCash"}
+   };
+
+   bool found = false;
+   for (auto net : networkMap) 
    {
-      iter = args.find("regtest");
-      if (iter != args.end())
+      iter = args.find(net.first);
+      if (iter != args.end()) 
       {
-         selectNetwork("Regtest");
-      }
-      else
-      {
-         selectNetwork("Main");
+         found = true;
+         selectNetwork(net.second);
+         break;
       }
    }
 
+   if (!found)
+      selectNetwork("Main");
+   
    //rpc port
    iter = args.find("satoshirpc-port");
    if (iter != args.end())
