@@ -139,7 +139,7 @@ void BlockDataManagerConfig::selectNetwork(const string &netname)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-string BlockDataManagerConfig::stripQuotes(const string& input)
+static string stripQuotes(const string& input)
 {
    size_t start = 0;
    size_t len = input.size();
@@ -218,7 +218,7 @@ void BlockDataManagerConfig::parseArgs(int argc, char* argv[])
 
    --clear-mempool: delete all zero confirmation transactions from the DB.
 
-   --satoshirpc-port: set node rpc port
+   --satoshi-rpcport: set node rpc port
 
    --listen-all: listen to all incoming IPs (not just localhost)
 
@@ -375,31 +375,39 @@ void BlockDataManagerConfig::parseArgs(int argc, char* argv[])
    }
 }
 
+static string parsePortArg(const map<string, string>& args, const string& key, const string& defaultValue) 
+{
+   auto iter = args.find(key);
+   if (iter != args.end())
+   {
+      auto value = stripQuotes(iter->second);
+      int portInt = 0;
+      stringstream portSS(value);
+      portSS >> portInt;
+
+      if (portInt < 1 || portInt > 65535)
+      {
+         cout << "Invalid " << key << " port, falling back to default" << endl;
+      }
+      else
+      {
+         return value;
+      }
+   }
+   return defaultValue;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 void BlockDataManagerConfig::processArgs(const map<string, string>& args, 
    bool onlyDetectNetwork)
 {
    //server networking
-   auto iter = args.find("fcgi-port");
-   if (iter != args.end())
+   fcgiPort_ = parsePortArg(args, "fcgi-port", "");
+   if (fcgiPort_.length() > 0)
    {
-      fcgiPort_ = stripQuotes(iter->second);
-      int portInt = 0;
-      stringstream portSS(fcgiPort_);
-      portSS >> portInt;
-
-      if (portInt < 1 || portInt > 65535)
-      {
-         cout << "Invalid fcgi port, falling back to default" << endl;
-         fcgiPort_ = "";
-      }
-      else
-      {
-         customFcgiPort_ = true;
-      }
+      customFcgiPort_ = true;
    }
-
-   iter = args.find("listen-all");
+   auto iter = args.find("listen-all");
    if (iter != args.end())
    {
       listen_all_ = true;
@@ -425,23 +433,11 @@ void BlockDataManagerConfig::processArgs(const map<string, string>& args,
    }
 
    //rpc port
-   iter = args.find("satoshirpc-port");
-   if (iter != args.end())
-   {
-      auto value = stripQuotes(iter->second);
-      int portInt = 0;
-      stringstream portSS(value);
-      portSS >> portInt;
+   rpcPort_ = parsePortArg(args, "satoshi-rpcport", rpcPort_);
+   btcPort_ = parsePortArg(args, "satoshi-port", btcPort_);
 
-      if (portInt < 1 || portInt > 65535)
-      {
-         cout << "Invalid satoshi rpc port, falling back to default" << endl;
-      }
-      else
-      {
-         rpcPort_ = value;
-      }
-   }
+   cout << "Configured RPCPort: " << rpcPort_ << endl;
+   cout << "Configured BTCPort: " << btcPort_ << endl;
 
    if (onlyDetectNetwork)
       return;
@@ -760,7 +756,7 @@ ConfigFile::ConfigFile(const string& path)
          continue;
 
       keyvalMap_.insert(make_pair(
-         keyval.first, BlockDataManagerConfig::stripQuotes(keyval.second)));
+         keyval.first, stripQuotes(keyval.second)));
    }
 }
 
