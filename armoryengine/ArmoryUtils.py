@@ -97,6 +97,7 @@ parser.add_option("--satoshi-rpcport", dest="satoshiRpcport",default=DEFAULT,typ
 parser.add_option("--dbdir",           dest="armoryDBDir",  default=DEFAULT, type='str',          help="Location to store blocks database (defaults to --datadir)")
 parser.add_option("--rpcport",         dest="rpcport",     default=DEFAULT, type="str",          help="RPC port for running armoryd.py")
 parser.add_option("--rpcbindaddr",     dest="rpcBindAddr", default="127.0.0.1", type="str",      help="IP Address to bind to for RPC.")
+parser.add_option("--bcash",           dest="bcash",       default=False,     action="store_true", help="Use the bcash protocol")
 parser.add_option("--testnet",         dest="testnet",     default=False,     action="store_true", help="Use the testnet protocol")
 parser.add_option("--regtest",         dest="regtest",     default=False,     action="store_true", help="Use the Regression Test Network protocol")
 parser.add_option("--offline",         dest="offline",     default=False,     action="store_true", help="Force Armory to run in offline mode")
@@ -285,6 +286,9 @@ USE_TESTNET = CLI_OPTIONS.testnet
 
 # Use CLI args to determine regtest or not
 USE_REGTEST = CLI_OPTIONS.regtest
+
+# Use CLI args to determine bcash or not
+USE_BCASH = CLI_OPTIONS.bcash
 
 # Set default port for inter-process communication
 if CLI_OPTIONS.interport < 0:
@@ -513,7 +517,10 @@ if not USE_TESTNET and not USE_REGTEST:
    BITCOIN_PORT = 8333
    BITCOIN_RPC_PORT = 8332
    ARMORY_RPC_PORT = 8225
-   MAGIC_BYTES = '\xf9\xbe\xb4\xd9'
+   if USE_BCASH:
+      bdmConfig.selectNetwork("BCash")
+  
+   MAGIC_BYTES = '\xf9\xbe\xb4\xd9' 
    GENESIS_BLOCK_HASH_HEX  = '6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000'
    GENESIS_BLOCK_HASH      = 'o\xe2\x8c\n\xb6\xf1\xb3r\xc1\xa6\xa2F\xaec\xf7O\x93\x1e\x83e\xe1Z\x08\x9ch\xd6\x19\x00\x00\x00\x00\x00'
    GENESIS_TX_HASH_HEX     = '3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a'
